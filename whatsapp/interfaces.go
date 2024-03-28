@@ -3,9 +3,12 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"reflect"
 
+	"github.com/rpsoftech/whatsapp-http-api/env"
+	"github.com/rpsoftech/whatsapp-http-api/interfaces"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types/events"
@@ -13,15 +16,11 @@ import (
 )
 
 type (
-	IServerConfig struct {
-		Tokens  map[string]string `json:"tokens" validator:"required"`
-		Numbers []string          `json:"numbers" validator:"required"`
-	}
-
 	WhatsappConnection struct {
 		Client           *whatsmeow.Client
 		Number           string
 		ConnectionStatus int
+		QrCodeString     string
 	}
 
 	IWhatsappConnectionMap map[string]*WhatsappConnection
@@ -29,24 +28,44 @@ type (
 
 var OutPutFilePath = ""
 
+func (connection *WhatsappConnection) ReturnStatusError() error {
+	if connection.ConnectionStatus == 0 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusNotFound,
+			Code:       interfaces.ERROR_CONNECTION_NOT_INITIALIZED,
+			Message:    "Connection Not Initialized QR SCANNED",
+			Name:       "ERROR_CONNECTION_NOT_INITIALIZED",
+			Extra:      []string{connection.QrCodeString},
+		}
+	} else if connection.ConnectionStatus == -1 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusNotFound,
+			Code:       interfaces.ERROR_CONNECTION_LOGGED_OUT,
+			Message:    "Connection Logged Out",
+			Name:       "ERROR_CONNECTION_LOGGED_OUT",
+		}
+	}
+	return nil
+}
 func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.LoggedOut:
 		// Send Status
 		connection.ConnectionStatus = -1
-		// EmitTheStatusToSever(connection.Number, -1)
+		connection.Client.Logout()
 		println(connection.Number, " Logged Out")
-		connection.Client.Store.Delete()
 	case *events.Connected:
 		// Send Status
 		connection.Client.Store.Save()
+		env.ServerConfig.JID[connection.Number] = connection.Client.Store.ID.String()
+		env.ServerConfig.Save()
 		connection.ConnectionStatus = 1
 		println(connection.Number, " Logged In")
 	default:
 		fmt.Printf("Event Occurred%s\n", reflect.TypeOf(v))
 	}
 }
-func (connection *WhatsappConnection) SendTextMessage(to []string, msg string, reqId string) *map[string]bool {
+func (connection *WhatsappConnection) SendTextMessage(to []string, msg string) *map[string]bool {
 	response := make(map[string]bool)
 	for _, number := range to {
 		IsOnWhatsappCheck, err := connection.Client.IsOnWhatsApp([]string{"+" + number})
@@ -70,7 +89,7 @@ func (connection *WhatsappConnection) SendTextMessage(to []string, msg string, r
 			_, err := connection.Client.SendMessage(context.Background(), targetJID, &waProto.Message{
 				Conversation: proto.String(msg),
 			})
-			if err != nil {
+			if err == nil {
 				response[number] = true
 			}
 		}

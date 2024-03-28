@@ -1,5 +1,5 @@
 __debug*
-
+.env
 
 *.db
 

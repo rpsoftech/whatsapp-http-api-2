@@ -12,7 +12,7 @@
             "args": [
                 "--dev"
             ],
-            "program": "${fileDirname}/main.go" 
+            "program": "${workspaceFolder}/main.go" 
         }
     ]
 }

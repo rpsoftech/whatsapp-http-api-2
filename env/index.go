@@ -1,0 +1,80 @@
+package env
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
+	"github.com/joho/godotenv"
+	"github.com/rpsoftech/whatsapp-http-api/validator"
+)
+
+type (
+	EnvInterface struct {
+		APP_ENV AppEnv `json:"APP_ENV" validate:"required,enum=AppEnv"`
+		PORT    int    `json:"PORT" validate:"required,port"`
+		// DB_URL                string `json:"DB_URL" validate:"required,url"`
+		// DB_NAME               string `json:"DB_NAME_KEY" validate:"required,min=3"`
+		// REDIS_DB_HOST         string `json:"REDIS_DB_HOST" validate:"required"`
+		// REDIS_DB_PORT         int    `json:"REDIS_DB_PORT" validate:"required,port"`
+		// REDIS_DB_PASSWORD     string `json:"REDIS_DB_PASSWORD" validate:"required"`
+		// REDIS_DB_DATABASE     int    `json:"REDIS_DB_DATABASE" validate:"min=0,max=100"`
+		// ACCESS_TOKEN_KEY      string `json:"ACCESS_TOKEN_KEY" validate:"required,min=100"`
+		// REFRESH_TOKEN_KEY     string `json:"REFRESH_TOKEN_KEY" validate:"required,min=100"`
+		// FIREBASE_JSON_STRING  string `json:"FIREBASE_JSON_STRING" validate:"required"`
+		// FIREBASE_DATABASE_URL string `json:"FIREBASE_DATABASE_URL" validate:"required"`
+	}
+	IServerConfig struct {
+		Tokens  map[string]string `json:"tokens" validate:"required"`
+		Numbers []string          `json:"numbers" validate:"required"`
+		JID     map[string]string `json:"JID" validate:"required"`
+	}
+)
+
+var (
+	Env                  *EnvInterface
+	ServerConfig         *IServerConfig
+	CurrentDirectory     string = ""
+	serverConfigFilePath string = ""
+)
+
+const ServerConfigFileName = "server.config.json"
+
+func init() {
+	godotenv.Load()
+	PORT, err := strconv.Atoi(os.Getenv(port_KEY))
+	if err != nil {
+		panic("Please Pass Valid Port")
+	}
+	appEnv, _ := parseAppEnv(os.Getenv(app_ENV_KEY))
+	Env = &EnvInterface{
+		APP_ENV: appEnv,
+		PORT:    PORT,
+	}
+	errs := validator.Validator.Validate(Env)
+	if len(errs) > 0 {
+		println(errs)
+		panic(errs[0])
+	}
+}
+
+func (sc *IServerConfig) Save() {
+	if serverConfigFilePath == "" {
+		serverConfigFilePath = filepath.Join(CurrentDirectory, ServerConfigFileName)
+	}
+	byteJson, err := json.MarshalIndent(sc, "", "    ")
+	if err != nil {
+		return
+	}
+	f, err := os.OpenFile(serverConfigFilePath, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		fmt.Printf("%v \n", err)
+		return
+	}
+	defer f.Close()
+	if _, err = f.Write(byteJson); err != nil {
+		fmt.Printf("%v \n", err)
+	}
+}

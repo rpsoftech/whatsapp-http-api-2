@@ -31,9 +31,21 @@ func InitSqlContainer() {
 	}
 }
 
-func ConnectToNumber(number string) {
+func ConnectToNumber(number string, jidString string) {
 	// SqlContainer.PutDevice()
-	deviceStore, err := SqlContainer.GetDevice(types.NewJID(number, types.DefaultUserServer))
+	if deviceStores, _ := SqlContainer.GetAllDevices(); true {
+		for _, deviceStore := range deviceStores {
+			println(deviceStore.ID.User)
+		}
+	}
+	var JID types.JID
+	if jidString != "" {
+		JID, _ = types.ParseJID(jidString)
+	} else {
+		JID = types.NewJID(number, types.DefaultUserServer)
+	}
+
+	deviceStore, err := SqlContainer.GetDevice(JID)
 	if err != nil {
 		panic(err)
 	}
@@ -56,6 +68,7 @@ func ConnectToNumber(number string) {
 		for evt := range qrChan {
 			if evt.Event == "code" {
 				fmt.Printf("QR code for %s\n", number)
+				connection.QrCodeString = evt.Code
 				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 			} else {
 				fmt.Println("Login event:", evt.Event)
