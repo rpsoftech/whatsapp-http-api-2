@@ -29,7 +29,7 @@ type (
 	IServerConfig struct {
 		Tokens  map[string]string `json:"tokens" validate:"required"`
 		Numbers []string          `json:"numbers" validate:"required"`
-		JID     map[string]string `json:"JID" validate:"required"`
+		JID     map[string]string `json:"JID"`
 	}
 )
 

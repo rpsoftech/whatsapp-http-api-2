@@ -4,3 +4,4 @@ __debug*
 *.db
 
 server.config.json
+tmp

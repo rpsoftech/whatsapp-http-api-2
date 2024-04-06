@@ -22,13 +22,16 @@ import (
 
 func main() {
 	env.CurrentDirectory = FindAndReturnCurrentDir()
+	go func() {
+		os.RemoveAll("./tmp")
+		os.Mkdir("./tmp", os.ModeTemporary)
+	}()
 	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
 	whatsapp.InitSqlContainer()
 	go func() {
-
 		for _, number := range env.ServerConfig.Numbers {
-			jidString, _ := env.ServerConfig.JID[number]
+			jidString := env.ServerConfig.JID[number]
 			whatsapp.ConnectToNumber(number, jidString)
 		}
 	}()
@@ -91,6 +94,9 @@ func ReadConfigFileAndReturnIt(currentDir string) *env.IServerConfig {
 	check(err)
 	if errs := validator.Validator.Validate(config); len(errs) > 0 {
 		panic(fmt.Errorf("CONFIG_ERROR %#v", errs))
+	}
+	if config.JID == nil {
+		config.JID = make(map[string]string)
 	}
 	return config
 }

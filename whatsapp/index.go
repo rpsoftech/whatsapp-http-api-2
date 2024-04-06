@@ -55,7 +55,7 @@ func ConnectToNumber(number string, jidString string) {
 	}
 	clientLog := waLog.Stdout("Client", "ERROR", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
-	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0}
+	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false}
 	ConnectionMap[number] = connection
 	client.AddEventHandler(connection.eventHandler)
 	if client.Store.ID == nil {
