@@ -3,6 +3,7 @@ package env
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,8 +14,9 @@ import (
 
 type (
 	EnvInterface struct {
-		APP_ENV AppEnv `json:"APP_ENV" validate:"required,enum=AppEnv"`
-		PORT    int    `json:"PORT" validate:"required,port"`
+		APP_ENV             AppEnv `json:"APP_ENV" validate:"required,enum=AppEnv"`
+		PORT                int    `json:"PORT" validate:"required,port"`
+		ALLOW_LOCAL_NO_AUTH bool   `json:"ALLOW_LOCAL_NO_AUTH" validate:"boolean"`
 		// DB_URL                string `json:"DB_URL" validate:"required,url"`
 		// DB_NAME               string `json:"DB_NAME_KEY" validate:"required,min=3"`
 		// REDIS_DB_HOST         string `json:"REDIS_DB_HOST" validate:"required"`
@@ -49,9 +51,15 @@ func init() {
 		panic("Please Pass Valid Port")
 	}
 	appEnv, _ := parseAppEnv(os.Getenv(app_ENV_KEY))
+	allow_local_no_Auth, err := strconv.ParseBool(os.Getenv(allow_local_no_auth_KEY))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	Env = &EnvInterface{
-		APP_ENV: appEnv,
-		PORT:    PORT,
+		APP_ENV:             appEnv,
+		PORT:                PORT,
+		ALLOW_LOCAL_NO_AUTH: allow_local_no_Auth,
 	}
 	errs := validator.Validator.Validate(Env)
 	if len(errs) > 0 {

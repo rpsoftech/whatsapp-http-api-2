@@ -2,6 +2,7 @@ package env
 
 const app_ENV_KEY = "APP_ENV"
 const port_KEY = "PORT"
+const allow_local_no_auth_KEY = "ALLOW_LOCAL_NO_AUTH"
 
 // const db_URL_KEY = "DB_URL"
 // const db_NAME_KEY = "DB_NAME"
