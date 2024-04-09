@@ -50,6 +50,11 @@ func ConnectToNumber(number string, jidString string) {
 	}
 	clientLog := waLog.Stdout("Client", "ERROR", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
+	// client.MessengerConfig = &whatsmeow.MessengerConfig{
+	// 	UserAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+	// 	BaseURL:   "https://web.whatsapp.com",
+	// }
+	// client.PairPhone()
 	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false}
 	ConnectionMap[number] = connection
 	client.AddEventHandler(connection.eventHandler)

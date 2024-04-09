@@ -39,6 +39,14 @@ func (r *RequestError) AppendValidationErrors(errs []validator.ErrorResponse) *R
 	return r
 }
 
+func ExtractKeyFromHeader(c *fiber.Ctx, key string) string {
+	reqHeaders := c.GetReqHeaders()
+	if tokenString, foundToken := reqHeaders[key]; !foundToken || len(tokenString) != 1 || tokenString[0] == "" {
+		return ""
+	} else {
+		return tokenString[0]
+	}
+}
 func ExtractNumberFromCtx(c *fiber.Ctx) (string, error) {
 	id, ok := c.Locals(REQ_LOCAL_NUMBER_KEY).(string)
 	if !ok {

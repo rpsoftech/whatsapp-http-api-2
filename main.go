@@ -36,7 +36,7 @@ func main() {
 	env.CurrentDirectory = FindAndReturnCurrentDir()
 	go func() {
 		os.RemoveAll("./tmp")
-		os.Mkdir("./tmp", os.ModeTemporary)
+		os.Mkdir("./tmp", 0777)
 	}()
 	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
