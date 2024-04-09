@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mdp/qrterminal/v3"
 	"github.com/rpsoftech/whatsapp-http-api/env"
 	"github.com/rpsoftech/whatsapp-http-api/interfaces"
 	"github.com/rpsoftech/whatsapp-http-api/utility"
@@ -50,6 +51,33 @@ func (connection *WhatsappConnection) ReturnStatusError() error {
 	}
 	return nil
 }
+
+func (connection *WhatsappConnection) ConnectAndGetQRCode() {
+	if connection.Client.Store.ID == nil {
+		// No ID stored, new login
+		qrChan, _ := connection.Client.GetQRChannel(context.Background())
+		err := connection.Client.Connect()
+		if err != nil {
+			panic(err)
+		}
+		for evt := range qrChan {
+			if evt.Event == "code" {
+				fmt.Printf("QR code for %s\n", connection.Number)
+				connection.QrCodeString = evt.Code
+				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+			} else {
+				fmt.Println("Login event:", evt.Event)
+			}
+		}
+	} else {
+		// Already logged in, just connect
+		println("Connected")
+		err := connection.Client.Connect()
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.LoggedOut:
@@ -57,6 +85,7 @@ func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 		connection.ConnectionStatus = -1
 		connection.Client.Logout()
 		println(connection.Number, " Logged Out")
+
 	case *events.Connected:
 		// Send Status
 		connection.Client.Store.Save()

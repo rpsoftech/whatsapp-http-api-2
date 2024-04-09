@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,7 +21,18 @@ import (
 	"github.com/rpsoftech/whatsapp-http-api/whatsapp"
 )
 
+var version string
+
 func main() {
+	println(version)
+	// println(time.Now().Unix())
+	if time.Now().Unix() > 1713262858 {
+		println("Please Update The Binary From Keyur Shah")
+		println("Press Any Key To Close")
+		input := bufio.NewScanner(os.Stdin)
+		input.Scan()
+		return
+	}
 	env.CurrentDirectory = FindAndReturnCurrentDir()
 	go func() {
 		os.RemoveAll("./tmp")

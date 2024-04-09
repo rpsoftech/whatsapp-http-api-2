@@ -1,13 +1,8 @@
 package whatsapp
 
 import (
-	"context"
-	"fmt"
-	"os"
-
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/mdp/qrterminal/v3"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
@@ -58,28 +53,5 @@ func ConnectToNumber(number string, jidString string) {
 	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false}
 	ConnectionMap[number] = connection
 	client.AddEventHandler(connection.eventHandler)
-	if client.Store.ID == nil {
-		// No ID stored, new login
-		qrChan, _ := client.GetQRChannel(context.Background())
-		err = client.Connect()
-		if err != nil {
-			panic(err)
-		}
-		for evt := range qrChan {
-			if evt.Event == "code" {
-				fmt.Printf("QR code for %s\n", number)
-				connection.QrCodeString = evt.Code
-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
-			} else {
-				fmt.Println("Login event:", evt.Event)
-			}
-		}
-	} else {
-		// Already logged in, just connect
-		println("Connected")
-		err = client.Connect()
-		if err != nil {
-			panic(err)
-		}
-	}
+	connection.ConnectAndGetQRCode()
 }
