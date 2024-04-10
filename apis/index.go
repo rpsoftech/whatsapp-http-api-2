@@ -142,6 +142,14 @@ func SendMessage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if len(body.Msg) == 0 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusBadRequest,
+			Code:       interfaces.ERROR_INVALID_INPUT,
+			Message:    "Message Not Found",
+			Name:       "ERROR_INVALID_INPUT",
+		}
+	}
 	connection, ok := whatsapp.ConnectionMap[number]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
@@ -155,7 +163,6 @@ func SendMessage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
 	runHeadLess, err := strconv.ParseBool(interfaces.ExtractKeyFromHeader(c, "Headless"))
 	if err != nil {
 		runHeadLess = false
