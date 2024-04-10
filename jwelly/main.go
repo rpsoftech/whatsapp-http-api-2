@@ -11,11 +11,12 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/rpsoftech/whatsapp-http-api/validator"
 )
 
 type JwellyWhatsappConfig struct {
 	ServerUrl            string `json:"serverUrl"`
-	Token                string `json:"token"`
 	DoNotWaitForResponse bool   `json:"doNotWaitForResponse"`
 }
 
@@ -35,6 +36,7 @@ func main() {
 	if _, err := os.Stat("./whatsapp.config"); err == nil {
 		// path/to/whatever exists
 		if res, err := os.ReadFile("./whatsapp.config"); err == nil {
+			config = ReadConfigFileAndReturnIt(FindAndReturnCurrentDir())
 			AfterWhatsappConfigFile(string(res))
 		}
 	} else if errors.Is(err, os.ErrNotExist) {
@@ -48,6 +50,24 @@ func main() {
 
 	AppendToOutPutFile(fmt.Sprintln(len(os.Args), os.Args))
 }
+
+func ReadConfigFileAndReturnIt(currentDir string) *JwellyWhatsappConfig {
+	configFilePAth := filepath.Join(currentDir, "jwelly.whatsapp.config")
+	dat, err := os.ReadFile(configFilePAth)
+	if err != nil {
+		panic(fmt.Errorf("failed to read config file: %w", err))
+	}
+	config := &JwellyWhatsappConfig{}
+	_, err = fmt.Sscanln(string(dat), &config.ServerUrl, &config.DoNotWaitForResponse)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse config file: %w", err))
+	}
+	if errs := validator.Validator.Validate(config); len(errs) > 0 {
+		panic(fmt.Errorf("CONFIG_ERROR %#v", errs))
+	}
+	return config
+}
+
 func AfterWhatsappConfigFile(data string) {
 	// Check that config is not null
 	if config == nil {
