@@ -1,0 +1,508 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WhatsApp API MultiDevice",
+    "version": "3.7.0",
+    "description": "This API is used for sending whatsapp via API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/v1"
+    },
+    {
+      "url": "http://localhost:4000/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "SendMessages",
+      "description": "Sending Text And Whatsapp Message Over Whatsapp"
+    }
+  ],
+  "paths":{
+    "/send_message": {
+      "post": {
+        "operationId": "appLogin",
+        "tags": [
+          "SendMessages"
+        ],
+        "summary": "Send Text Message",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "6289685028129@s.whatsapp.net",
+                    "description": "Phone number with country code"
+                  },
+                  "caption": {
+                    "type": "string",
+                    "example": "ini contoh caption video",
+                    "description": "Caption to send"
+                  },
+                  "view_once": {
+                    "type": "boolean",
+                    "example": "false",
+                    "description": "View once"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Video to send"
+                  },
+                  "compress": {
+                    "type": "boolean",
+                    "example": "false",
+                    "description": "Compress video"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBadRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorInternalServer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send_media": {
+      "post": {
+        "operationId": "sendMedia",
+        "tags": [
+          "SendMessages"
+        ],
+        "summary": "Send Any Media File",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "to"
+                ],
+                "properties": {
+                  "to": {
+                    "type": "array",
+                    "description": "Phone number with country code",
+                    "items": {
+                      "type": "string",
+                      "example": "919999998888"
+                    }
+                  },
+                  "msg": {
+                    "type": "string",
+                    "example": "selamat malam",
+                    "description": "Caption to send"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Media To Be Send"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBadRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorInternalServer"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserGroupResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success get list groups"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "JID": {
+                      "type": "string"
+                    },
+                    "OwnerJID": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "NameSetAt": {
+                      "type": "string"
+                    },
+                    "NameSetBy": {
+                      "type": "string"
+                    },
+                    "GroupCreated": {
+                      "type": "string"
+                    },
+                    "ParticipantVersionID": {
+                      "type": "string"
+                    },
+                    "Participants": {
+                      "type": "array",
+                      "items": {
+                        "properties": {
+                          "JID": {
+                            "type": "string"
+                          },
+                          "IsAdmin": {
+                            "type": "boolean"
+                          },
+                          "IsSuperAdmin": {
+                            "type": "boolean"
+                          },
+                          "Error": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserInfoResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": null
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "verified_name": {
+                "type": "string",
+                "example": "Aldino Kemal"
+              },
+              "status": {
+                "type": "string",
+                "example": "Hello World"
+              },
+              "picture_id": {
+                "type": "string",
+                "example": 1651459152
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "User": {
+                      "type": "string",
+                      "example": 6289685021291
+                    },
+                    "Agent": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "Device": {
+                      "type": "string",
+                      "example": "UNKNOWN"
+                    },
+                    "Server": {
+                      "type": "string",
+                      "example": "s.whatsapp.net"
+                    },
+                    "AD": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserAvatarResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "example": "https://pps.whatsapp.net/v/t61.24694-24/181358562_385581386633509_6230178822944778044_n.jpg?ccb=11-4&oh=df36c5b990497b8a5758a0f1ad8118a8&oe=620AA726"
+              },
+              "id": {
+                "type": "string",
+                "example": "1635239861"
+              },
+              "type": {
+                "type": "string",
+                "example": "image"
+              }
+            }
+          }
+        }
+      },
+      "UserPrivacyResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success get privacy"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "group_add": {
+                "type": "string",
+                "example": "all"
+              },
+              "last_seen": {
+                "type": "string",
+                "example": null
+              },
+              "status": {
+                "type": "string",
+                "example": "all"
+              },
+              "profile": {
+                "type": "string",
+                "example": "all"
+              },
+              "read_receipts": {
+                "type": "string",
+                "example": "all"
+              }
+            }
+          }
+        }
+      },
+      "SendResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "message_id": {
+                "type": "string",
+                "example": "3EB0B430B6F8F1D0E053AC120E0A9E5C"
+              },
+              "status": {
+                "type": "string",
+                "example": "<feature> success ...."
+              }
+            }
+          }
+        }
+      },
+      "DeviceResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Fetch device success"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Aldino Kemal"
+                },
+                "device": {
+                  "type": "string",
+                  "example": "628960561XXX.0:64@s.whatsapp.net"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "qr_duration": {
+                "type": "integer",
+                "example": 30
+              },
+              "qr_link": {
+                "type": "string",
+                "example": "http://localhost:3000/statics/images/qrcode/scan-qr-b0b7bb43-9a22-455a-814f-5a225c743310.png"
+              }
+            }
+          }
+        }
+      },
+      "GenericResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "results": {
+            "type": "string",
+            "example": null
+          }
+        }
+      },
+      "ErrorInternalServer": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": 101,
+            "description": "SYSTEM_CODE_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "you are not loggin",
+            "description": "Detail error message"
+          },
+          "results": {
+            "type": "object",
+            "example": null,
+            "description": "additional data"
+          }
+        }
+      },
+      "ErrorBadRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": 400,
+            "description": "HTTP Status Code"
+          },
+          "message": {
+            "type": "string",
+            "example": "field cannot be blank",
+            "description": "Detail error message"
+          },
+          "results": {
+            "type": "object",
+            "example": null,
+            "description": "additional data"
+          }
+        }
+      }
+    }
+  }
+}

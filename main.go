@@ -67,6 +67,7 @@ func InitFiberServer() {
 		},
 	})
 	app.Use(logger.New())
+	app.Static("/swagger", "./swagger")
 	apis.AddApis(app.Group("/v1", middleware.TokenDecrypter, middleware.AllowOnlyValidTokenMiddleWare))
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("Sorry can't find that!")
