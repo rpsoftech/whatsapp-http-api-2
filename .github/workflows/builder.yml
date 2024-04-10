@@ -16,3 +16,5 @@ jobs:
 
       - name: Build
         run: go build -v ./...
+      - name: Build Jwelly
+        run: go build -v ./jwelly/main.go 
