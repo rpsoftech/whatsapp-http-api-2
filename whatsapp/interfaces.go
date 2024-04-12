@@ -137,8 +137,8 @@ func (connection *WhatsappConnection) SendTextMessage(to []string, msg string) *
 	}
 	return &response
 }
-func (connection *WhatsappConnection) SendMediaFile(to []string, filePath string, fileName string, msg string) *map[string]bool {
-	response := make(map[string]bool)
+func (connection *WhatsappConnection) SendMediaFile(to []string, filePath string, fileName string, msg string) *map[string]interface{} {
+	response := make(map[string]interface{})
 	var docProto *waProto.Message
 	for _, number := range to {
 		IsOnWhatsappCheck, err := connection.Client.IsOnWhatsApp([]string{"+" + number})
@@ -243,9 +243,9 @@ func (connection *WhatsappConnection) SendMediaFile(to []string, filePath string
 		}
 		response[number] = false
 		if len(msg) > 0 {
-			_, err := connection.Client.SendMessage(context.Background(), targetJID, docProto)
+			resp, err := connection.Client.SendMessage(context.Background(), targetJID, docProto)
 			if err == nil {
-				response[number] = true
+				response[number] = resp
 			}
 		}
 	}

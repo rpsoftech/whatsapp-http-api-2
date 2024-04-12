@@ -57,6 +57,14 @@ func SendMediaFile(c *fiber.Ctx) error {
 		return err
 	}
 
+	if len(body.To) == 0 || len(body.To[0]) < 7 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusBadRequest,
+			Code:       interfaces.ERROR_INVALID_INPUT,
+			Message:    "Number Not Found",
+			Name:       "ERROR_INVALID_INPUT",
+		}
+	}
 	connection, ok := whatsapp.ConnectionMap[number]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
@@ -97,11 +105,21 @@ func SendMediaFile(c *fiber.Ctx) error {
 func SendMediaFileWithBase64(c *fiber.Ctx) error {
 	body := new(apiSendMediaMsgWithBase64)
 	c.BodyParser(body)
-	number, err := interfaces.ExtractNumberFromCtx(c)
-	if err != nil {
+
+	if err := utility.ValidateReqInput(body); err != nil {
 		return err
 	}
-	if err := utility.ValidateReqInput(body); err != nil {
+
+	if len(body.To) == 0 || len(body.To[0]) < 7 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusBadRequest,
+			Code:       interfaces.ERROR_INVALID_INPUT,
+			Message:    "Number Not Found",
+			Name:       "ERROR_INVALID_INPUT",
+		}
+	}
+	number, err := interfaces.ExtractNumberFromCtx(c)
+	if err != nil {
 		return err
 	}
 
@@ -137,7 +155,14 @@ func SendMessage(c *fiber.Ctx) error {
 	if err := utility.ValidateReqInput(body); err != nil {
 		return err
 	}
-
+	if len(body.To) == 0 || len(body.To[0]) < 7 {
+		return &interfaces.RequestError{
+			StatusCode: http.StatusBadRequest,
+			Code:       interfaces.ERROR_INVALID_INPUT,
+			Message:    "Number Not Found",
+			Name:       "ERROR_INVALID_INPUT",
+		}
+	}
 	number, err := interfaces.ExtractNumberFromCtx(c)
 	if err != nil {
 		return err
