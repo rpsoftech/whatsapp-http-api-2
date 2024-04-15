@@ -94,12 +94,12 @@ func SendMediaFile(c *fiber.Ctx) error {
 		runHeadLess = false
 	}
 	if runHeadLess {
-		go connection.SendMediaFile(body.To, destination, file.Filename, body.Msg)
+		go connection.SendMediaFileWithPath(body.To, destination, file.Filename, body.Msg)
 		return c.JSON(fiber.Map{
 			"success": true,
 		})
 	} else {
-		return c.JSON(connection.SendMediaFile(body.To, destination, file.Filename, body.Msg))
+		return c.JSON(connection.SendMediaFileWithPath(body.To, destination, file.Filename, body.Msg))
 	}
 }
 func SendMediaFileWithBase64(c *fiber.Ctx) error {

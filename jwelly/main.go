@@ -58,10 +58,13 @@ func ReadConfigFileAndReturnIt(currentDir string) *JwellyWhatsappConfig {
 		panic(fmt.Errorf("failed to read config file: %w", err))
 	}
 	config := &JwellyWhatsappConfig{}
-	_, err = fmt.Sscanln(string(dat), &config.ServerUrl, &config.DoNotWaitForResponse)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse config file: %w", err))
+	dataArray := strings.Split(string(dat), "\n")
+	if len(dataArray) < 2 {
+		panic(fmt.Errorf("expected dataArray to have length 2, got %d", len(dataArray)))
 	}
+	config.ServerUrl = strings.TrimSpace(dataArray[0])
+	config.DoNotWaitForResponse = strings.TrimSpace(dataArray[1]) == "true"
+
 	if errs := validator.Validator.Validate(config); len(errs) > 0 {
 		panic(fmt.Errorf("CONFIG_ERROR %#v", errs))
 	}
@@ -71,37 +74,43 @@ func ReadConfigFileAndReturnIt(currentDir string) *JwellyWhatsappConfig {
 func AfterWhatsappConfigFile(data string) {
 	// Check that config is not null
 	if config == nil {
-		AppendToOutPutFile("Config is null")
+		go AppendToOutPutFile("Config is null")
 		return
 	}
 
-	dataToBeSend := strings.SplitN(data, "\n", 4)
+	dataToBeSend := strings.SplitN(data, "\n", 5)
 
 	// Check that dataToBeSend is the expected length
-	if len(dataToBeSend) != 4 {
-		AppendToOutPutFile(fmt.Sprintf("Expected dataToBeSend to have length 4, got %d", len(dataToBeSend)))
+	if len(dataToBeSend) < 5 {
+		go AppendToOutPutFile(fmt.Sprintf("Expected dataToBeSend to have length 5, got %d", len(dataToBeSend)))
 		return
 	}
 
 	number, key, filePathToBeSend := dataToBeSend[1], dataToBeSend[0], dataToBeSend[3]
-
+	number = strings.TrimSpace(number)
+	key = strings.TrimSpace(key)
+	filePathToBeSend = strings.TrimSpace(filePathToBeSend)
 	// Check that filePathToBeSend is not empty
 	if filePathToBeSend == "" {
-		AppendToOutPutFile("filePathToBeSend is empty")
+		go AppendToOutPutFile("filePathToBeSend is empty")
 		return
 	}
 
 	// Check that key is not empty
 	if key == "" {
-		AppendToOutPutFile("key is empty")
+		go AppendToOutPutFile("key is empty")
 		return
 	}
 
 	reqUrl := config.ServerUrl + "/send_media_64"
-
+	if _, err := os.Stat(filePathToBeSend); err != nil {
+		go AppendToOutPutFile(err.Error())
+		return
+	}
+	go AppendToOutPutFile("File Read Successfully")
 	fileBytes, err := os.ReadFile(filePathToBeSend)
 	if err != nil {
-		AppendToOutPutFile(err.Error())
+		go AppendToOutPutFile(err.Error())
 		return
 	}
 
@@ -110,32 +119,40 @@ func AfterWhatsappConfigFile(data string) {
 	postBody := fmt.Sprintf(`{"msg":"","fileName":"%s","to":["%s"],"base64":"%s"}`,
 		filepath.Base(filePathToBeSend), number, base64File)
 
+	// Send the POST request
+	go AppendToOutPutFile("Sending Request To " + reqUrl)
 	req, err := http.NewRequest("POST", reqUrl, strings.NewReader(postBody))
 	if err != nil {
-		AppendToOutPutFile(err.Error())
+		go AppendToOutPutFile(err.Error())
 		return
 	}
 
-	req.Header.Add("headless", "true")
+	if config.DoNotWaitForResponse {
+		req.Header.Add("headless", "true")
+	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("X-Api-Token", key)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		AppendToOutPutFile(err.Error())
+		go AppendToOutPutFile(err.Error())
 		return
 	}
 
 	defer res.Body.Close()
 
-	_, err = io.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		AppendToOutPutFile(err.Error())
+		go AppendToOutPutFile(err.Error())
 		return
 	}
+	go AppendToOutPutFile("Response " + string(body))
 }
 
 func AppendToOutPutFile(text string) {
+	text = text + "\n"
+	println(text)
+
 	f, err := os.OpenFile("./rps_whatsapp.logs.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)

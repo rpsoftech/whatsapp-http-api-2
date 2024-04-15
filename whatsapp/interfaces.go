@@ -124,7 +124,7 @@ func (connection *WhatsappConnection) SendTextMessage(to []string, msg string) *
 			// return
 		}
 		targetJID := NumberOnWhatsapp.JID
-		fmt.Printf("sending File To %s\n", number)
+		fmt.Printf("sending Text To %s\n", number)
 		response[number] = false
 		if len(msg) > 0 {
 			resp, err := connection.Client.SendMessage(context.Background(), targetJID, &waProto.Message{
@@ -137,121 +137,6 @@ func (connection *WhatsappConnection) SendTextMessage(to []string, msg string) *
 	}
 	return &response
 }
-func (connection *WhatsappConnection) SendMediaFile(to []string, filePath string, fileName string, msg string) *map[string]interface{} {
-	response := make(map[string]interface{})
-	var docProto *waProto.Message
-	for _, number := range to {
-		IsOnWhatsappCheck, err := connection.Client.IsOnWhatsApp([]string{"+" + number})
-		if err != nil {
-			AppendToOutPutFile(fmt.Sprintf("%s,false,Something Went Wrong %#v\n", number, err))
-			// return
-			response[number] = false
-			continue
-		}
-		NumberOnWhatsapp := IsOnWhatsappCheck[0]
-		if !NumberOnWhatsapp.IsIn {
-			AppendToOutPutFile(fmt.Sprintf("%s,false,Number %s Not On Whatsapp\n", number, number))
-			response[number] = false
-			continue
-			// return
-		}
-		targetJID := NumberOnWhatsapp.JID
-		fmt.Printf("sending File To %s\n", number)
-		if docProto == nil {
-			extensionName := utility.GetMime(fileName)
-			fileByte, err := os.ReadFile(filePath)
-			if err != nil {
-				AppendToOutPutFile(fmt.Sprintf("false,Error While Reading File %#v\n", err))
-				continue
-			}
-			if strings.Contains(extensionName, "image") {
-				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaImage)
-				if err != nil {
-					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
-					continue
-				}
-				docProto = &waProto.Message{
-					ImageMessage: &waProto.ImageMessage{
-						Caption:  proto.String(msg),
-						Url:      &resp.URL,
-						Mimetype: proto.String(extensionName),
-						// FileName:      &fileName,
-						DirectPath:    &resp.DirectPath,
-						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
-						FileLength:    &resp.FileLength,
-					},
-				}
-			} else if strings.Contains(extensionName, "audio") {
-				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaAudio)
-				if err != nil {
-					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
-					continue
-				}
-				docProto = &waProto.Message{
-					AudioMessage: &waProto.AudioMessage{
-						// Caption:       proto.String(msg),
-						Url:      &resp.URL,
-						Mimetype: proto.String(extensionName),
-						// FileName:      &fileName,
-						DirectPath:    &resp.DirectPath,
-						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
-						FileLength:    &resp.FileLength,
-					},
-				}
-			} else if strings.Contains(extensionName, "video") {
-				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaVideo)
-				if err != nil {
-					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
-					continue
-				}
-				docProto = &waProto.Message{
-					VideoMessage: &waProto.VideoMessage{
-						Caption:       proto.String(msg),
-						Url:           &resp.URL,
-						Mimetype:      proto.String(extensionName),
-						DirectPath:    &resp.DirectPath,
-						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
-						FileLength:    &resp.FileLength,
-					},
-				}
-			} else {
-				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaDocument)
-				if err != nil {
-					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
-					continue
-				}
-				docProto = &waProto.Message{
-					DocumentMessage: &waProto.DocumentMessage{
-						Caption:       proto.String(msg),
-						Url:           &resp.URL,
-						Mimetype:      proto.String(extensionName),
-						FileName:      &fileName,
-						DirectPath:    &resp.DirectPath,
-						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
-						FileLength:    &resp.FileLength,
-					},
-				}
-			}
-		}
-		response[number] = false
-		if len(msg) > 0 {
-			resp, err := connection.Client.SendMessage(context.Background(), targetJID, docProto)
-			if err == nil {
-				response[number] = resp
-			}
-		}
-	}
-	return &response
-}
-
 func (connection *WhatsappConnection) SendMediaFileBase64(to []string, base64Data string, fileName string, msg string) *map[string]bool {
 	// pdfBytes, err := os.ReadFile(filePath)
 	bytesData, err := base64.StdEncoding.DecodeString(base64Data)
@@ -369,7 +254,7 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 			}
 		}
 		response[number] = false
-		if len(msg) > 0 {
+		if docProto != nil {
 			_, err := connection.Client.SendMessage(context.Background(), targetJID, docProto)
 			if err == nil {
 				response[number] = true
