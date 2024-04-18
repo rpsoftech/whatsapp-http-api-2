@@ -4,16 +4,13 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-var (
-	SqlContainer *sqlstore.Container
-
-	ConnectionMap = make(IWhatsappConnectionMap)
-)
+var SqlContainer *sqlstore.Container
 
 func InitSqlContainer() {
 
@@ -26,7 +23,7 @@ func InitSqlContainer() {
 	}
 }
 
-func ConnectToNumber(number string, jidString string) {
+func ConnectToNumber(number string, jidString string, token string) {
 	// SqlContainer.PutDevice()
 	if deviceStores, _ := SqlContainer.GetAllDevices(); true {
 		for _, deviceStore := range deviceStores {
@@ -36,13 +33,17 @@ func ConnectToNumber(number string, jidString string) {
 	var JID types.JID
 	if jidString != "" {
 		JID, _ = types.ParseJID(jidString)
-	} else {
+	} else if number != "" {
 		JID = types.NewJID(number, types.DefaultUserServer)
 	}
+	var deviceStore *store.Device
+	if !JID.IsEmpty() {
+		var err error
 
-	deviceStore, err := SqlContainer.GetDevice(JID)
-	if err != nil {
-		panic(err)
+		deviceStore, err = SqlContainer.GetDevice(JID)
+		if err != nil {
+			println(err.Error())
+		}
 	}
 	if deviceStore == nil {
 		deviceStore = SqlContainer.NewDevice()

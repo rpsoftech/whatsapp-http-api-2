@@ -40,12 +40,15 @@ func main() {
 	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
 	whatsapp.InitSqlContainer()
-	go func() {
-		for _, number := range env.ServerConfig.Numbers {
-			jidString := env.ServerConfig.JID[number]
-			whatsapp.ConnectToNumber(number, jidString)
-		}
-	}()
+	if !env.Env.DO_NOT_AUTO_CONNECT_TO_WHATSAPP {
+
+		go func() {
+			for k, v := range env.ServerConfig.Tokens {
+				jidString := env.ServerConfig.JID[v]
+				whatsapp.ConnectToNumber(v, jidString, k)
+			}
+		}()
+	}
 	InitFiberServer()
 
 }

@@ -23,6 +23,7 @@ type (
 	WhatsappConnection struct {
 		Client           *whatsmeow.Client
 		Number           string
+		Token            string
 		ConnectionStatus int
 		QrCodeString     string
 		SyncFinished     bool
@@ -31,7 +32,10 @@ type (
 	IWhatsappConnectionMap map[string]*WhatsappConnection
 )
 
-var OutPutFilePath = ""
+var (
+	OutPutFilePath = ""
+	ConnectionMap  = make(IWhatsappConnectionMap)
+)
 
 func (connection *WhatsappConnection) ReturnStatusError() error {
 	if connection.ConnectionStatus == 0 {
@@ -59,11 +63,11 @@ func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 		qrChan, _ := connection.Client.GetQRChannel(context.Background())
 		err := connection.Client.Connect()
 		if err != nil {
-			panic(err)
+			println(err.Error())
 		}
 		for evt := range qrChan {
 			if evt.Event == "code" {
-				fmt.Printf("QR code for %s\n", connection.Number)
+				fmt.Printf("QR code for %s\n", connection.Token)
 				connection.QrCodeString = evt.Code
 				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 			} else {
@@ -75,7 +79,7 @@ func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 		println("Connected")
 		err := connection.Client.Connect()
 		if err != nil {
-			panic(err)
+			println(err.Error())
 		}
 	}
 }
@@ -85,15 +89,18 @@ func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 		// Send Status
 		connection.ConnectionStatus = -1
 		connection.Client.Logout()
-
+		connection.Client.Store.Delete()
 		println(connection.Number, " Logged Out")
 		connection.Client.Disconnect()
+		delete(ConnectionMap, connection.Token)
 		go connection.ConnectAndGetQRCode()
 	case *events.Connected:
 		// Send Status
 		connection.Client.Store.Save()
+		connection.Number = connection.Client.Store.ID.User
 		go func() {
-			env.ServerConfig.JID[connection.Number] = connection.Client.Store.ID.String()
+			env.ServerConfig.Tokens[connection.Token] = connection.Number
+			env.ServerConfig.JID[connection.Token] = connection.Client.Store.ID.String()
 			env.ServerConfig.Save()
 		}()
 		connection.ConnectionStatus = 1

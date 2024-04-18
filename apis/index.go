@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rpsoftech/whatsapp-http-api/interfaces"
+	"github.com/rpsoftech/whatsapp-http-api/middleware"
 	"github.com/rpsoftech/whatsapp-http-api/utility"
 	"github.com/rpsoftech/whatsapp-http-api/whatsapp"
 )
@@ -26,12 +27,23 @@ type (
 
 func AddApis(app fiber.Router) {
 	app.Get("/qr_code", GetQrCode)
-	app.Post("/send_message", SendMessage)
-	app.Post("/send_media", SendMediaFile)
-	app.Post("/send_media_64", SendMediaFileWithBase64)
-	// auth.AddAuthPackages(app.Group("/auth"))
-	// data.AddDataPackage(app.Group("/data"))
-	// order.AddOrderPackage(app.Group("/order"))
+	// app.Get("/qr_scan", QrScan)
+	{
+		authenticated := app.Group("", middleware.AllowOnlyValidLoggedInWhatsapp)
+		authenticated.Post("/send_message", SendMessage)
+		authenticated.Post("/send_media", SendMediaFile)
+		authenticated.Post("/send_media_64", SendMediaFileWithBase64)
+	}
+}
+
+func QrScan(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.SendStatus(http.StatusBadRequest)
+	}
+	return c.JSON(fiber.Map{
+		id: id,
+	})
 }
 
 func SendMediaFile(c *fiber.Ctx) error {

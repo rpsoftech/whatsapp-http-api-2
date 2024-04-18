@@ -14,9 +14,10 @@ import (
 
 type (
 	EnvInterface struct {
-		APP_ENV             AppEnv `json:"APP_ENV" validate:"required,enum=AppEnv"`
-		PORT                int    `json:"PORT" validate:"required,port"`
-		ALLOW_LOCAL_NO_AUTH bool   `json:"ALLOW_LOCAL_NO_AUTH" validate:"boolean"`
+		APP_ENV                         AppEnv `json:"APP_ENV" validate:"required,enum=AppEnv"`
+		PORT                            int    `json:"PORT" validate:"required,port"`
+		ALLOW_LOCAL_NO_AUTH             bool   `json:"ALLOW_LOCAL_NO_AUTH" validate:"boolean"`
+		DO_NOT_AUTO_CONNECT_TO_WHATSAPP bool   `json:"DO_NOT_AUTO_CONNECT_TO_WHATSAPP" validate:"boolean"`
 		// DB_URL                string `json:"DB_URL" validate:"required,url"`
 		// DB_NAME               string `json:"DB_NAME_KEY" validate:"required,min=3"`
 		// REDIS_DB_HOST         string `json:"REDIS_DB_HOST" validate:"required"`
@@ -29,9 +30,8 @@ type (
 		// FIREBASE_DATABASE_URL string `json:"FIREBASE_DATABASE_URL" validate:"required"`
 	}
 	IServerConfig struct {
-		Tokens  map[string]string `json:"tokens" validate:"required"`
-		Numbers []string          `json:"numbers" validate:"required"`
-		JID     map[string]string `json:"JID"`
+		Tokens map[string]string `json:"tokens" validate:"required"`
+		JID    map[string]string `json:"JID"`
 	}
 )
 
@@ -56,10 +56,16 @@ func init() {
 		log.Fatal(err)
 	}
 
+	do_not_auto_connect_to_whatsapp, err := strconv.ParseBool(os.Getenv(do_Not_Auto_Connect_To_Whatsapp_KEY))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	Env = &EnvInterface{
-		APP_ENV:             appEnv,
-		PORT:                PORT,
-		ALLOW_LOCAL_NO_AUTH: allow_local_no_Auth,
+		APP_ENV:                         appEnv,
+		PORT:                            PORT,
+		ALLOW_LOCAL_NO_AUTH:             allow_local_no_Auth,
+		DO_NOT_AUTO_CONNECT_TO_WHATSAPP: do_not_auto_connect_to_whatsapp,
 	}
 	errs := validator.Validator.Validate(Env)
 	if len(errs) > 0 {
