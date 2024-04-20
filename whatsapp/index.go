@@ -23,7 +23,7 @@ func InitSqlContainer() {
 	}
 }
 
-func ConnectToNumber(number string, jidString string, token string) {
+func ConnectToNumber(jidString string, token string) {
 	// SqlContainer.PutDevice()
 	if deviceStores, _ := SqlContainer.GetAllDevices(); true {
 		for _, deviceStore := range deviceStores {
@@ -33,13 +33,10 @@ func ConnectToNumber(number string, jidString string, token string) {
 	var JID types.JID
 	if jidString != "" {
 		JID, _ = types.ParseJID(jidString)
-	} else if number != "" {
-		JID = types.NewJID(number, types.DefaultUserServer)
 	}
 	var deviceStore *store.Device
 	if !JID.IsEmpty() {
 		var err error
-
 		deviceStore, err = SqlContainer.GetDevice(JID)
 		if err != nil {
 			println(err.Error())
@@ -51,12 +48,16 @@ func ConnectToNumber(number string, jidString string, token string) {
 	}
 	clientLog := waLog.Stdout("Client", "ERROR", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
+	client.EnableAutoReconnect = true
+	// client.
+	println(client.LastSuccessfulConnect.String())
+
 	// client.MessengerConfig = &whatsmeow.MessengerConfig{
 	// 	UserAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
 	// 	BaseURL:   "https://web.whatsapp.com",
 	// }
 	// client.PairPhone()
-	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false, Token: token}
+	connection := &WhatsappConnection{Client: client, ConnectionStatus: 0, SyncFinished: false, Token: token}
 	ConnectionMap[token] = connection
 	client.AddEventHandler(connection.eventHandler)
 

@@ -42,9 +42,9 @@ func main() {
 	whatsapp.InitSqlContainer()
 	if env.Env.AUTO_CONNECT_TO_WHATSAPP {
 		go func() {
-			for k, v := range env.ServerConfig.Tokens {
+			for k := range env.ServerConfig.Tokens {
 				jidString := env.ServerConfig.JID[k]
-				whatsapp.ConnectToNumber(v, jidString, k)
+				whatsapp.ConnectToNumber(jidString, k)
 			}
 		}()
 	}

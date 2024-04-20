@@ -29,6 +29,7 @@ type (
 
 func AddApis(app fiber.Router) {
 	app.Get("/qr_code", GetQrCode)
+	app.Post("/start", StartNumber)
 	// app.Get("/qr_scan", QrScan)
 	{
 		authenticated := app.Group("", middleware.AllowOnlyValidLoggedInWhatsapp)
@@ -167,7 +168,7 @@ func SendMessage(c *fiber.Ctx) error {
 			Name:       "ERROR_INVALID_INPUT",
 		}
 	}
-	number, err := interfaces.ExtractNumberFromCtx(c)
+	token, err := interfaces.ExtractNumberFromCtx(c)
 	if err != nil {
 		return err
 	}
@@ -179,12 +180,12 @@ func SendMessage(c *fiber.Ctx) error {
 			Name:       "ERROR_INVALID_INPUT",
 		}
 	}
-	connection, ok := whatsapp.ConnectionMap[number]
+	connection, ok := whatsapp.ConnectionMap[token]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
 			StatusCode: http.StatusNotFound,
 			Code:       interfaces.ERROR_CONNECTION_NOT_FOUND,
-			Message:    fmt.Sprintf("Number %s Not Found", number),
+			Message:    fmt.Sprintf("Number %s Not Found", token),
 			Name:       "ERROR_CONNECTION_NOT_FOUND",
 		}
 	}
