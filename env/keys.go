@@ -3,7 +3,8 @@ package env
 const app_ENV_KEY = "APP_ENV"
 const port_KEY = "PORT"
 const allow_local_no_auth_KEY = "ALLOW_LOCAL_NO_AUTH"
-const do_Not_Auto_Connect_To_Whatsapp_KEY = "DO_NOT_AUTO_CONNECT_TO_WHATSAPP"
+const Auto_Connect_To_Whatsapp_KEY = "AUTO_CONNECT_TO_WHATSAPP"
+const open_browser_for_scan_KEY = "OPEN_BROWSER_FOR_SCAN"
 
 // const db_URL_KEY = "DB_URL"
 // const db_NAME_KEY = "DB_NAME"

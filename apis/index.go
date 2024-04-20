@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/rpsoftech/whatsapp-http-api/middleware"
 	"github.com/rpsoftech/whatsapp-http-api/utility"
 	"github.com/rpsoftech/whatsapp-http-api/whatsapp"
+	"github.com/skip2/go-qrcode"
 )
 
 type (
@@ -34,16 +36,6 @@ func AddApis(app fiber.Router) {
 		authenticated.Post("/send_media", SendMediaFile)
 		authenticated.Post("/send_media_64", SendMediaFileWithBase64)
 	}
-}
-
-func QrScan(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if id == "" {
-		return c.SendStatus(http.StatusBadRequest)
-	}
-	return c.JSON(fiber.Map{
-		id: id,
-	})
 }
 
 func SendMediaFile(c *fiber.Ctx) error {
@@ -231,6 +223,7 @@ func GetQrCode(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	connection, ok := whatsapp.ConnectionMap[number]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
@@ -241,9 +234,12 @@ func GetQrCode(c *fiber.Ctx) error {
 		}
 	}
 	err = connection.ReturnStatusError()
+
 	if err != nil {
+		png, _ := qrcode.Encode(connection.QrCodeString, qrcode.High, 512)
 		return c.JSON(fiber.Map{
-			"qrCode": connection.QrCodeString,
+			"qrCode":     base64.StdEncoding.EncodeToString(png),
+			"qrCodeData": connection.QrCodeString,
 		})
 	}
 	return c.JSON(fiber.Map{

@@ -56,8 +56,9 @@ func ConnectToNumber(number string, jidString string, token string) {
 	// 	BaseURL:   "https://web.whatsapp.com",
 	// }
 	// client.PairPhone()
-	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false}
-	ConnectionMap[number] = connection
+	connection := &WhatsappConnection{Client: client, Number: number, ConnectionStatus: 0, SyncFinished: false, Token: token}
+	ConnectionMap[token] = connection
 	client.AddEventHandler(connection.eventHandler)
+
 	connection.ConnectAndGetQRCode()
 }

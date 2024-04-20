@@ -60,6 +60,11 @@ func (connection *WhatsappConnection) ReturnStatusError() error {
 func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 	if connection.Client.Store.ID == nil {
 		// No ID stored, new login
+		if env.Env.OPEN_BROWSER_FOR_SCAN {
+			go func(token string) {
+				utility.OpenBrowser(fmt.Sprintf("http://127.0.0.1:%d/scan/%s", env.Env.PORT, token))
+			}(connection.Token)
+		}
 		qrChan, _ := connection.Client.GetQRChannel(context.Background())
 		err := connection.Client.Connect()
 		if err != nil {
@@ -69,7 +74,10 @@ func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 			if evt.Event == "code" {
 				fmt.Printf("QR code for %s\n", connection.Token)
 				connection.QrCodeString = evt.Code
-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+				// env.ServerConfig.Tokens[connection.Token] = "Something"
+				if !env.Env.OPEN_BROWSER_FOR_SCAN {
+					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+				}
 			} else {
 				fmt.Println("Login event:", evt.Event)
 			}

@@ -40,11 +40,10 @@ func main() {
 	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
 	whatsapp.InitSqlContainer()
-	if !env.Env.DO_NOT_AUTO_CONNECT_TO_WHATSAPP {
-
+	if env.Env.AUTO_CONNECT_TO_WHATSAPP {
 		go func() {
 			for k, v := range env.ServerConfig.Tokens {
-				jidString := env.ServerConfig.JID[v]
+				jidString := env.ServerConfig.JID[k]
 				whatsapp.ConnectToNumber(v, jidString, k)
 			}
 		}()
@@ -71,6 +70,8 @@ func InitFiberServer() {
 	app.Use(logger.New())
 	app.Static("/swagger", "./swagger")
 	apis.AddApis(app.Group("/v1", middleware.TokenDecrypter, middleware.AllowOnlyValidTokenMiddleWare))
+
+	app.Get("/scan/:id", apis.OpenBrowserWithQr)
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("Sorry can't find that!")
 	})
