@@ -37,6 +37,7 @@ require (
 	github.com/gofiber/contrib/swagger v1.1.1 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/judwhite/go-svc v1.2.1 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
