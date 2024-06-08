@@ -21,6 +21,7 @@ import (
 )
 
 var version string
+var app *fiber.App
 
 func main() {
 	println(version)
@@ -45,18 +46,20 @@ func main() {
 	}
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
 	whatsapp.InitSqlContainer()
-	go func() {
-		for _, number := range env.ServerConfig.Numbers {
-			jidString := env.ServerConfig.JID[number]
-			whatsapp.ConnectToNumber(number, jidString)
-		}
-	}()
+	if env.Env.AUTO_CONNECT_TO_WHATSAPP {
+		go func() {
+			for k := range env.ServerConfig.Tokens {
+				jidString := env.ServerConfig.JID[k]
+				whatsapp.ConnectToNumber(jidString, k)
+			}
+		}()
+	}
 	InitFiberServer()
 
 }
 
 func InitFiberServer() {
-	app := fiber.New(fiber.Config{
+	app = fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			mappedError, ok := err.(*interfaces.RequestError)
 			if !ok {
@@ -73,6 +76,8 @@ func InitFiberServer() {
 	app.Use(logger.New())
 	app.Static("/swagger", "./swagger")
 	apis.AddApis(app.Group("/v1", middleware.TokenDecrypter, middleware.AllowOnlyValidTokenMiddleWare))
+
+	app.Get("/scan/:id", apis.OpenBrowserWithQr)
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("Sorry can't find that!")
 	})

@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,8 +9,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rpsoftech/whatsapp-http-api/interfaces"
+	"github.com/rpsoftech/whatsapp-http-api/middleware"
 	"github.com/rpsoftech/whatsapp-http-api/utility"
 	"github.com/rpsoftech/whatsapp-http-api/whatsapp"
+	"github.com/skip2/go-qrcode"
 )
 
 type (
@@ -26,12 +29,14 @@ type (
 
 func AddApis(app fiber.Router) {
 	app.Get("/qr_code", GetQrCode)
-	app.Post("/send_message", SendMessage)
-	app.Post("/send_media", SendMediaFile)
-	app.Post("/send_media_64", SendMediaFileWithBase64)
-	// auth.AddAuthPackages(app.Group("/auth"))
-	// data.AddDataPackage(app.Group("/data"))
-	// order.AddOrderPackage(app.Group("/order"))
+	app.Post("/start", StartNumber)
+	// app.Get("/qr_scan", QrScan)
+	{
+		authenticated := app.Group("", middleware.AllowOnlyValidLoggedInWhatsapp)
+		authenticated.Post("/send_message", SendMessage)
+		authenticated.Post("/send_media", SendMediaFile)
+		authenticated.Post("/send_media_64", SendMediaFileWithBase64)
+	}
 }
 
 func SendMediaFile(c *fiber.Ctx) error {
@@ -163,7 +168,7 @@ func SendMessage(c *fiber.Ctx) error {
 			Name:       "ERROR_INVALID_INPUT",
 		}
 	}
-	number, err := interfaces.ExtractNumberFromCtx(c)
+	token, err := interfaces.ExtractNumberFromCtx(c)
 	if err != nil {
 		return err
 	}
@@ -175,12 +180,12 @@ func SendMessage(c *fiber.Ctx) error {
 			Name:       "ERROR_INVALID_INPUT",
 		}
 	}
-	connection, ok := whatsapp.ConnectionMap[number]
+	connection, ok := whatsapp.ConnectionMap[token]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
 			StatusCode: http.StatusNotFound,
 			Code:       interfaces.ERROR_CONNECTION_NOT_FOUND,
-			Message:    fmt.Sprintf("Number %s Not Found", number),
+			Message:    fmt.Sprintf("Number %s Not Found", token),
 			Name:       "ERROR_CONNECTION_NOT_FOUND",
 		}
 	}
@@ -219,6 +224,7 @@ func GetQrCode(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	connection, ok := whatsapp.ConnectionMap[number]
 	if !ok || connection == nil {
 		return &interfaces.RequestError{
@@ -229,9 +235,12 @@ func GetQrCode(c *fiber.Ctx) error {
 		}
 	}
 	err = connection.ReturnStatusError()
+
 	if err != nil {
+		png, _ := qrcode.Encode(connection.QrCodeString, qrcode.High, 512)
 		return c.JSON(fiber.Map{
-			"qrCode": connection.QrCodeString,
+			"qrCode":     base64.StdEncoding.EncodeToString(png),
+			"qrCodeData": connection.QrCodeString,
 		})
 	}
 	return c.JSON(fiber.Map{

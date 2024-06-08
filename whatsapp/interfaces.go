@@ -23,6 +23,7 @@ type (
 	WhatsappConnection struct {
 		Client           *whatsmeow.Client
 		Number           string
+		Token            string
 		ConnectionStatus int
 		QrCodeString     string
 		SyncFinished     bool
@@ -31,7 +32,10 @@ type (
 	IWhatsappConnectionMap map[string]*WhatsappConnection
 )
 
-var OutPutFilePath = ""
+var (
+	OutPutFilePath = ""
+	ConnectionMap  = make(IWhatsappConnectionMap)
+)
 
 func (connection *WhatsappConnection) ReturnStatusError() error {
 	if connection.ConnectionStatus == 0 {
@@ -56,16 +60,24 @@ func (connection *WhatsappConnection) ReturnStatusError() error {
 func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 	if connection.Client.Store.ID == nil {
 		// No ID stored, new login
+		if env.Env.OPEN_BROWSER_FOR_SCAN {
+			go func(token string) {
+				utility.OpenBrowser(fmt.Sprintf("http://127.0.0.1:%d/scan/%s", env.Env.PORT, token))
+			}(connection.Token)
+		}
 		qrChan, _ := connection.Client.GetQRChannel(context.Background())
 		err := connection.Client.Connect()
 		if err != nil {
-			panic(err)
+			println(err.Error())
 		}
 		for evt := range qrChan {
 			if evt.Event == "code" {
-				fmt.Printf("QR code for %s\n", connection.Number)
+				fmt.Printf("QR code for %s\n", connection.Token)
 				connection.QrCodeString = evt.Code
-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+				// env.ServerConfig.Tokens[connection.Token] = "Something"
+				if !env.Env.OPEN_BROWSER_FOR_SCAN {
+					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+				}
 			} else {
 				fmt.Println("Login event:", evt.Event)
 			}
@@ -75,7 +87,7 @@ func (connection *WhatsappConnection) ConnectAndGetQRCode() {
 		println("Connected")
 		err := connection.Client.Connect()
 		if err != nil {
-			panic(err)
+			println(err.Error())
 		}
 	}
 }
@@ -83,17 +95,23 @@ func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.LoggedOut:
 		// Send Status
-		connection.ConnectionStatus = -1
+		// connection.ConnectionStatus = -1
 		connection.Client.Logout()
-
+		connection.Client.Store.Delete()
 		println(connection.Number, " Logged Out")
 		connection.Client.Disconnect()
+		delete(ConnectionMap, connection.Token)
+		env.ServerConfig.Tokens[connection.Token] = ""
+		delete(env.ServerConfig.JID, connection.Token)
+		env.ServerConfig.Save()
 		go connection.ConnectAndGetQRCode()
 	case *events.Connected:
 		// Send Status
 		connection.Client.Store.Save()
+		connection.Number = connection.Client.Store.ID.User
 		go func() {
-			env.ServerConfig.JID[connection.Number] = connection.Client.Store.ID.String()
+			env.ServerConfig.Tokens[connection.Token] = connection.Number
+			env.ServerConfig.JID[connection.Token] = connection.Client.Store.ID.String()
 			env.ServerConfig.Save()
 		}()
 		connection.ConnectionStatus = 1
