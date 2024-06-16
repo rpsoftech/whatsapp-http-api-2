@@ -54,6 +54,7 @@ func main() {
 
 func InitFiberServer() {
 	app := fiber.New(fiber.Config{
+		BodyLimit: 200 * 1024 * 1024,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			mappedError, ok := err.(*interfaces.RequestError)
 			if !ok {
