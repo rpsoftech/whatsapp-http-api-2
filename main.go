@@ -39,6 +39,11 @@ func main() {
 		os.Mkdir("./tmp", 0777)
 	}()
 	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
+	outputLogFolderDir := filepath.Join(env.CurrentDirectory, "whatsapp_server_logs")
+
+	if _, err := os.Stat(outputLogFolderDir); errors.Is(err, os.ErrNotExist) {
+		os.MkdirAll(outputLogFolderDir, 0777)
+	}
 	whatsapp.OutPutFilePath = ReturnOutPutFilePath(env.CurrentDirectory)
 	whatsapp.InitSqlContainer()
 	if env.Env.AUTO_CONNECT_TO_WHATSAPP {
@@ -54,7 +59,8 @@ func main() {
 }
 
 func InitFiberServer() {
-	app = fiber.New(fiber.Config{
+	app := fiber.New(fiber.Config{
+		BodyLimit: 200 * 1024 * 1024,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			mappedError, ok := err.(*interfaces.RequestError)
 			if !ok {
@@ -121,7 +127,7 @@ func ReadConfigFileAndReturnIt(currentDir string) *env.IServerConfig {
 func ReturnOutPutFilePath(currentDir string) string {
 	t := time.Now()
 	today := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location()).Unix()
-	return filepath.Join(currentDir, "whatsapp_server_logs", fmt.Sprintf("%d.log.csv", today))
+	return filepath.Join(currentDir, fmt.Sprintf("%d.log.csv", today))
 }
 func check(e error) {
 	if e != nil {

@@ -86,9 +86,10 @@ func AfterWhatsappConfigFile(data string) {
 		return
 	}
 
-	number, key, filePathToBeSend := dataToBeSend[1], dataToBeSend[0], dataToBeSend[3]
+	number, key, filePathToBeSend, messageToSend := dataToBeSend[1], dataToBeSend[0], dataToBeSend[3], dataToBeSend[2]
 	number = strings.TrimSpace(number)
 	key = strings.TrimSpace(key)
+	messageToSend = strings.TrimSpace(messageToSend)
 	filePathToBeSend = strings.TrimSpace(filePathToBeSend)
 	// Check that filePathToBeSend is not empty
 	if filePathToBeSend == "" {
@@ -116,7 +117,7 @@ func AfterWhatsappConfigFile(data string) {
 
 	base64File := base64.StdEncoding.EncodeToString(fileBytes)
 
-	postBody := fmt.Sprintf(`{"msg":"","fileName":"%s","to":["%s"],"base64":"%s"}`,
+	postBody := fmt.Sprintf(`{"msg":"%s","fileName":"%s","to":["%s"],"base64":"%s"}`, messageToSend,
 		filepath.Base(filePathToBeSend), number, base64File)
 
 	// Send the POST request
