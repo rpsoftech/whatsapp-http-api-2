@@ -233,22 +233,43 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					},
 				}
 			} else if strings.Contains(extensionName, "video") {
+				// var thumbResp *whatsmeow.UploadResponse
+
+				thumbBytes, _ := generateVideoThumbnail(fileByte, fileName)
+				// thumbResp, _ := connection.Client.Upload(context.Background(), thumbBytes, whatsmeow.MediaImage)
+				// }
 				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaVideo)
 				if err != nil {
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
 					continue
 				}
-				docProto = &waProto.Message{
-					VideoMessage: &waProto.VideoMessage{
-						Caption:       proto.String(msg),
-						Url:           &resp.URL,
-						Mimetype:      proto.String(extensionName),
-						DirectPath:    &resp.DirectPath,
-						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
-						FileLength:    &resp.FileLength,
-					},
+				if len(thumbBytes) > 0 {
+					docProto = &waProto.Message{
+						VideoMessage: &waProto.VideoMessage{
+							Caption:       proto.String(msg),
+							Url:           &resp.URL,
+							Mimetype:      proto.String(extensionName),
+							JpegThumbnail: thumbBytes,
+							DirectPath:    &resp.DirectPath,
+							MediaKey:      resp.MediaKey,
+							FileEncSha256: resp.FileEncSHA256,
+							FileSha256:    resp.FileSHA256,
+							FileLength:    &resp.FileLength,
+						},
+					}
+				} else {
+					docProto = &waProto.Message{
+						VideoMessage: &waProto.VideoMessage{
+							Caption:       proto.String(msg),
+							Url:           &resp.URL,
+							Mimetype:      proto.String(extensionName),
+							DirectPath:    &resp.DirectPath,
+							MediaKey:      resp.MediaKey,
+							FileEncSha256: resp.FileEncSHA256,
+							FileSha256:    resp.FileSHA256,
+							FileLength:    &resp.FileLength,
+						},
+					}
 				}
 			} else {
 				resp, err := connection.Client.Upload(context.Background(), fileByte, whatsmeow.MediaDocument)
