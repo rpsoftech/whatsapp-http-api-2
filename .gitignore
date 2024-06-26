@@ -2,6 +2,7 @@ __debug*
 .env
 
 *.db
+*.exe
 
 server.config.json
 tmp

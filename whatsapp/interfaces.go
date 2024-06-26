@@ -290,6 +290,12 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 						FileLength:    &resp.FileLength,
 					},
 				}
+				if strings.Contains(extensionName, "pdf") {
+					thumb, err := utility.ExtractFirstPage(fileByte)
+					if err != nil && len(thumb) > 0 {
+						docProto.DocumentMessage.JpegThumbnail = thumb
+					}
+				}
 			}
 		}
 		response[number] = false
