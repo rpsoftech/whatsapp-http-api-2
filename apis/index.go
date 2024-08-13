@@ -157,6 +157,7 @@ func SendMediaFileWithBase64(c *fiber.Ctx) error {
 func SendMessage(c *fiber.Ctx) error {
 	body := new(apiSendMessage)
 	c.BodyParser(body)
+
 	if err := utility.ValidateReqInput(body); err != nil {
 		return err
 	}

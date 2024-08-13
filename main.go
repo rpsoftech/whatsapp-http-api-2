@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,13 +26,13 @@ var app *fiber.App
 func main() {
 	println(version)
 
-	if time.Now().Unix() > 1719562963 {
-		println("Please Update The Binary From Keyur Shah")
-		println("Press Any Key To Close")
-		input := bufio.NewScanner(os.Stdin)
-		input.Scan()
-		return
-	}
+	// if time.Now().Unix() > 1719562963 {
+	// 	println("Please Update The Binary From Keyur Shah")
+	// 	println("Press Any Key To Close")
+	// 	input := bufio.NewScanner(os.Stdin)
+	// 	input.Scan()
+	// 	return
+	// }
 
 	env.CurrentDirectory = FindAndReturnCurrentDir()
 	go func() {
