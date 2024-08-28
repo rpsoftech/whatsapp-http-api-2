@@ -203,13 +203,13 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 				docProto = &waProto.Message{
 					ImageMessage: &waProto.ImageMessage{
 						Caption:  proto.String(msg),
-						Url:      &resp.URL,
+						URL:      &resp.URL,
 						Mimetype: proto.String(extensionName),
 						// FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
@@ -222,13 +222,13 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 				docProto = &waProto.Message{
 					AudioMessage: &waProto.AudioMessage{
 						// Caption:       proto.String(msg),
-						Url:      &resp.URL,
+						URL:      &resp.URL,
 						Mimetype: proto.String(extensionName),
 						// FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
@@ -247,13 +247,13 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					docProto = &waProto.Message{
 						VideoMessage: &waProto.VideoMessage{
 							Caption:       proto.String(msg),
-							Url:           &resp.URL,
+							URL:           &resp.URL,
 							Mimetype:      proto.String(extensionName),
-							JpegThumbnail: thumbBytes,
+							JPEGThumbnail: thumbBytes,
 							DirectPath:    &resp.DirectPath,
 							MediaKey:      resp.MediaKey,
-							FileEncSha256: resp.FileEncSHA256,
-							FileSha256:    resp.FileSHA256,
+							FileEncSHA256: resp.FileEncSHA256,
+							FileSHA256:    resp.FileSHA256,
 							FileLength:    &resp.FileLength,
 						},
 					}
@@ -261,12 +261,12 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					docProto = &waProto.Message{
 						VideoMessage: &waProto.VideoMessage{
 							Caption:       proto.String(msg),
-							Url:           &resp.URL,
+							URL:           &resp.URL,
 							Mimetype:      proto.String(extensionName),
 							DirectPath:    &resp.DirectPath,
 							MediaKey:      resp.MediaKey,
-							FileEncSha256: resp.FileEncSHA256,
-							FileSha256:    resp.FileSHA256,
+							FileEncSHA256: resp.FileEncSHA256,
+							FileSHA256:    resp.FileSHA256,
 							FileLength:    &resp.FileLength,
 						},
 					}
@@ -280,21 +280,21 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 				docProto = &waProto.Message{
 					DocumentMessage: &waProto.DocumentMessage{
 						Caption:       proto.String(msg),
-						Url:           &resp.URL,
+						URL:           &resp.URL,
 						Mimetype:      proto.String(extensionName),
 						FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
 				if strings.Contains(extensionName, "pdf") {
-					thumb, err := utility.ExtractFirstPage(fileByte)
-					if err != nil && len(thumb) > 0 {
-						docProto.DocumentMessage.JpegThumbnail = thumb
-					}
+					// thumb, err := utility.ExtractFirstPage(fileByte)
+					// if err != nil && len(thumb) > 0 {
+					// 	docProto.DocumentMessage.JPEGThumbnail = thumb
+					// }
 				}
 			}
 		}

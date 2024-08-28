@@ -19,7 +19,7 @@ import (
 )
 
 const baseUrl = "http://103.174.103.159:4000/v1"
-const token = "saura"
+const token = "saura1"
 const method = "POST"
 
 var mediaUrl = fmt.Sprintf("%s/send_media", baseUrl)
