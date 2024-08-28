@@ -14,7 +14,7 @@ import (
 	"github.com/rpsoftech/whatsapp-http-api/interfaces"
 	"github.com/rpsoftech/whatsapp-http-api/utility"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 )
@@ -145,7 +145,7 @@ func (connection *WhatsappConnection) SendTextMessage(to []string, msg string) *
 		fmt.Printf("sending Text To %s\n", number)
 		response[number] = false
 		if len(msg) > 0 {
-			resp, err := connection.Client.SendMessage(context.Background(), targetJID, &waProto.Message{
+			resp, err := connection.Client.SendMessage(context.Background(), targetJID, &waE2E.Message{
 				Conversation: proto.String(msg),
 			})
 			if err == nil {
@@ -174,7 +174,7 @@ func (connection *WhatsappConnection) SendMediaFileWithPath(to []string, filePat
 }
 func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte, fileName string, msg string) *map[string]bool {
 	response := make(map[string]bool)
-	var docProto *waProto.Message
+	var docProto *waE2E.Message
 	for _, number := range to {
 		IsOnWhatsappCheck, err := connection.Client.IsOnWhatsApp([]string{"+" + number})
 		if err != nil {
@@ -200,16 +200,16 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
 					continue
 				}
-				docProto = &waProto.Message{
-					ImageMessage: &waProto.ImageMessage{
+				docProto = &waE2E.Message{
+					ImageMessage: &waE2E.ImageMessage{
 						Caption:  proto.String(msg),
-						Url:      &resp.URL,
+						URL:      &resp.URL,
 						Mimetype: proto.String(extensionName),
 						// FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
@@ -219,16 +219,16 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
 					continue
 				}
-				docProto = &waProto.Message{
-					AudioMessage: &waProto.AudioMessage{
+				docProto = &waE2E.Message{
+					AudioMessage: &waE2E.AudioMessage{
 						// Caption:       proto.String(msg),
-						Url:      &resp.URL,
+						URL:      &resp.URL,
 						Mimetype: proto.String(extensionName),
 						// FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
@@ -244,29 +244,29 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					continue
 				}
 				if len(thumbBytes) > 0 {
-					docProto = &waProto.Message{
-						VideoMessage: &waProto.VideoMessage{
+					docProto = &waE2E.Message{
+						VideoMessage: &waE2E.VideoMessage{
 							Caption:       proto.String(msg),
-							Url:           &resp.URL,
+							URL:           &resp.URL,
 							Mimetype:      proto.String(extensionName),
-							JpegThumbnail: thumbBytes,
+							JPEGThumbnail: thumbBytes,
 							DirectPath:    &resp.DirectPath,
 							MediaKey:      resp.MediaKey,
-							FileEncSha256: resp.FileEncSHA256,
-							FileSha256:    resp.FileSHA256,
+							FileEncSHA256: resp.FileEncSHA256,
+							FileSHA256:    resp.FileSHA256,
 							FileLength:    &resp.FileLength,
 						},
 					}
 				} else {
-					docProto = &waProto.Message{
-						VideoMessage: &waProto.VideoMessage{
+					docProto = &waE2E.Message{
+						VideoMessage: &waE2E.VideoMessage{
 							Caption:       proto.String(msg),
-							Url:           &resp.URL,
+							URL:           &resp.URL,
 							Mimetype:      proto.String(extensionName),
 							DirectPath:    &resp.DirectPath,
 							MediaKey:      resp.MediaKey,
-							FileEncSha256: resp.FileEncSHA256,
-							FileSha256:    resp.FileSHA256,
+							FileEncSHA256: resp.FileEncSHA256,
+							FileSHA256:    resp.FileSHA256,
 							FileLength:    &resp.FileLength,
 						},
 					}
@@ -277,16 +277,16 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
 					continue
 				}
-				docProto = &waProto.Message{
-					DocumentMessage: &waProto.DocumentMessage{
+				docProto = &waE2E.Message{
+					DocumentMessage: &waE2E.DocumentMessage{
 						Caption:       proto.String(msg),
-						Url:           &resp.URL,
+						URL:           &resp.URL,
 						Mimetype:      proto.String(extensionName),
 						FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
 						MediaKey:      resp.MediaKey,
-						FileEncSha256: resp.FileEncSHA256,
-						FileSha256:    resp.FileSHA256,
+						FileEncSHA256: resp.FileEncSHA256,
+						FileSHA256:    resp.FileSHA256,
 						FileLength:    &resp.FileLength,
 					},
 				}
@@ -295,7 +295,7 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					println("PDF to thumb")
 					thumb, err := utility.ExtractFirstPage(fileByte)
 					if err == nil && len(thumb) > 0 {
-						docProto.DocumentMessage.JpegThumbnail = thumb
+						docProto.DocumentMessage.JPEGThumbnail = thumb
 					} else {
 						println(err.Error())
 					}
