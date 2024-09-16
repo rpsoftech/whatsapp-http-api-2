@@ -200,14 +200,21 @@ func AfterSuccessFullConnection() {
 			if !ThisConfig.ReadMessageFromCsv {
 				message = ThisConfig.Message
 			} else if ThisConfig.ReadMessageFromCsv && len(cols) >= 3 && len(cols[2]) > 0 {
-				message = cols[2]
+				for index, col := range cols {
+					if index > 1 {
+						if len(col) > 0 {
+							message = strings.ReplaceAll(message, fmt.Sprintf("{{var%d}}", index-1), col)
+						}
+					}
+				}
 			}
-			if message != "" {
+			if message != "" && !ThisConfig.AppendMessageToMedia {
 				if resp := SendTextMessage(number, message); !resp {
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Number Not Whatsapp\n", number))
 				}
+				message = ""
 			}
-			if resp := SendMediaMessage(sendFilePath, "", number); !resp {
+			if resp := SendMediaMessage(sendFilePath, message, number); !resp {
 				AppendToOutPutFile(fmt.Sprintf("%s,false,Number Not Whatsapp\n", number))
 			}
 			AppendToOutPutFile(fmt.Sprintf("%s,true\n", number))
