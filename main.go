@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,13 +28,13 @@ var version string
 func main() {
 	println(version)
 
-	// if time.Now().Unix() > 1719562963 {
-	// 	println("Please Update The Binary From Keyur Shah")
-	// 	println("Press Any Key To Close")
-	// 	input := bufio.NewScanner(os.Stdin)
-	// 	input.Scan()
-	// 	return
-	// }
+	if time.Now().Unix() > 1734512128 {
+		println("Please Update The Binary From Keyur Shah")
+		println("Press Any Key To Close")
+		input := bufio.NewScanner(os.Stdin)
+		input.Scan()
+		return
+	}
 	// args := os.Args
 	// if !slices.Contains(args, "--dev") && !slices.Contains(args, "--prod") {
 	// 	cmd := exec.Command(filepath.Join(FindAndReturnCurrentDir(), os.Args[0]), "--prod")
