@@ -2,10 +2,12 @@ package env
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -46,7 +48,9 @@ var (
 const ServerConfigFileName = "server.config.json"
 
 func init() {
-	godotenv.Load()
+	CurrentDirectory = FindAndReturnCurrentDir()
+	ServerConfig = ReadConfigFileAndReturnIt(CurrentDirectory)
+	godotenv.Load(filepath.Join(CurrentDirectory, ".env"))
 	PORT, err := strconv.Atoi(os.Getenv(port_KEY))
 	if err != nil {
 		panic("Please Pass Valid Port")
@@ -97,4 +101,44 @@ func (sc *IServerConfig) Save() {
 	if _, err = f.Write(byteJson); err != nil {
 		fmt.Printf("%v \n", err)
 	}
+}
+
+func FindAndReturnCurrentDir() string {
+	currentDir := ""
+	fmt.Println(len(os.Args), os.Args)
+	if slices.Contains(os.Args, "--dev") {
+		current, err := os.Getwd()
+		Check(err)
+		currentDir = current
+	} else {
+		exePath, err := os.Executable()
+		currentDir = filepath.Dir(exePath)
+		Check(err)
+	}
+	return currentDir
+}
+
+func Check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func ReadConfigFileAndReturnIt(currentDir string) *IServerConfig {
+	config := new(IServerConfig)
+	configFilePAth := filepath.Join(currentDir, ServerConfigFileName)
+	if _, err := os.Stat(configFilePAth); errors.Is(err, os.ErrNotExist) {
+		panic(fmt.Errorf("CONFIG_NOT_EXIST_ON_PATH %s", configFilePAth))
+	}
+	dat, err := os.ReadFile(configFilePAth)
+	Check(err)
+	err = json.Unmarshal(dat, config)
+	Check(err)
+	if errs := validator.Validator.Validate(config); len(errs) > 0 {
+		panic(fmt.Errorf("CONFIG_ERROR %#v", errs))
+	}
+	if config.JID == nil {
+		config.JID = make(map[string]string)
+	}
+	return config
 }

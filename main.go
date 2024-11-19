@@ -2,12 +2,10 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"time"
 
@@ -17,7 +15,6 @@ import (
 	"github.com/rpsoftech/whatsapp-http-api/env"
 	"github.com/rpsoftech/whatsapp-http-api/interfaces"
 	"github.com/rpsoftech/whatsapp-http-api/middleware"
-	"github.com/rpsoftech/whatsapp-http-api/validator"
 	"github.com/rpsoftech/whatsapp-http-api/whatsapp"
 )
 
@@ -47,12 +44,10 @@ func main() {
 	// 	// time.Sleep(5 * time.Second)
 	// 	return
 	// }
-	env.CurrentDirectory = FindAndReturnCurrentDir()
 	go func() {
 		os.RemoveAll("./tmp")
 		os.Mkdir("./tmp", 0777)
 	}()
-	env.ServerConfig = ReadConfigFileAndReturnIt(env.CurrentDirectory)
 	outputLogFolderDir := filepath.Join(env.CurrentDirectory, "whatsapp_server_logs")
 
 	if _, err := os.Stat(outputLogFolderDir); errors.Is(err, os.ErrNotExist) {
@@ -104,47 +99,8 @@ func InitFiberServer() {
 	app.Listen(hostAndPort)
 }
 
-func FindAndReturnCurrentDir() string {
-	currentDir := ""
-	fmt.Println(len(os.Args), os.Args)
-	if slices.Contains(os.Args, "--dev") {
-		current, err := os.Getwd()
-		check(err)
-		currentDir = current
-	} else {
-		exePath, err := os.Executable()
-		currentDir = filepath.Dir(exePath)
-		check(err)
-	}
-	return currentDir
-}
-
-func ReadConfigFileAndReturnIt(currentDir string) *env.IServerConfig {
-	config := new(env.IServerConfig)
-	configFilePAth := filepath.Join(currentDir, env.ServerConfigFileName)
-	if _, err := os.Stat(configFilePAth); errors.Is(err, os.ErrNotExist) {
-		panic(fmt.Errorf("CONFIG_NOT_EXIST_ON_PATH %s", configFilePAth))
-	}
-	dat, err := os.ReadFile(configFilePAth)
-	check(err)
-	err = json.Unmarshal(dat, config)
-	check(err)
-	if errs := validator.Validator.Validate(config); len(errs) > 0 {
-		panic(fmt.Errorf("CONFIG_ERROR %#v", errs))
-	}
-	if config.JID == nil {
-		config.JID = make(map[string]string)
-	}
-	return config
-}
-
 func ReturnOutPutFilePath(currentDir string) string {
 	t := time.Now()
 	today := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location()).Unix()
 	return filepath.Join(currentDir, fmt.Sprintf("%d.log.csv", today))
-}
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
