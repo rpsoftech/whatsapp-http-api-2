@@ -1,7 +1,11 @@
 package whatsapp
 
 import (
+	"fmt"
+	"path/filepath"
+
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rpsoftech/whatsapp-http-api/env"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
@@ -17,7 +21,7 @@ func InitSqlContainer() {
 	dbLog := waLog.Stdout("Database", "WARN", true)
 	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
 	var err error
-	SqlContainer, err = sqlstore.New("sqlite3", "file:WhatsappSuperSecrete.db?_foreign_keys=on", dbLog)
+	SqlContainer, err = sqlstore.New("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", filepath.Join(env.CurrentDirectory, "WhatsappSuperSecrete.db")), dbLog)
 	if err != nil {
 		panic(err)
 	}

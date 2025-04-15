@@ -32,13 +32,25 @@ func CreateLogsFile() {
 }
 
 func main() {
-	fmt.Println(len(os.Args), os.Args)
+	// args := os.Args
+	// if !slices.Contains(args, "--dev") && !slices.Contains(args, "--prod") {
+	// 	cmd := exec.Command(filepath.Join(FindAndReturnCurrentDir(), os.Args[0]), "--prod")
+	// 	cmd.Stdout = os.Stdout
+	// 	err := cmd.Start()
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	log.Printf("Just ran subprocess %d, exiting\n", cmd.Process.Pid)
+	// 	// time.Sleep(5 * time.Second)
+	// 	return
+	// }
 	if _, err := os.Stat("./whatsapp.config"); err == nil {
 		// path/to/whatever exists
 		if res, err := os.ReadFile("./whatsapp.config"); err == nil {
 			config = ReadConfigFileAndReturnIt(FindAndReturnCurrentDir())
 			AfterWhatsappConfigFile(string(res))
 		}
+		// time.Sleep(8 * time.Second)
 	} else if errors.Is(err, os.ErrNotExist) {
 		// path/to/whatever does *not* exist
 		AppendToOutPutFile("File Does Not Exist")
@@ -105,6 +117,16 @@ func AfterWhatsappConfigFile(data string) {
 
 	reqUrl := config.ServerUrl + "/send_media_64"
 	if _, err := os.Stat(filePathToBeSend); err != nil {
+		for i := 0; i < 15; i++ {
+			_, err := os.Stat(filePathToBeSend)
+			if err == nil {
+				break
+			}
+			if errors.Is(err, os.ErrNotExist) {
+				go AppendToOutPutFile("Waiting For File")
+				time.Sleep(1 * time.Second)
+			}
+		}
 		go AppendToOutPutFile(err.Error())
 		return
 	}
@@ -115,6 +137,21 @@ func AfterWhatsappConfigFile(data string) {
 		return
 	}
 
+	if len(fileBytes) <= 10 {
+		for i := 0; i < 3; i++ {
+			fileBytes, _ = os.ReadFile(filePathToBeSend)
+			if len(fileBytes) <= 10 {
+				go AppendToOutPutFile("Waiting For File")
+				time.Sleep(5 * time.Second)
+			} else {
+				break
+			}
+		}
+		if len(fileBytes) <= 10 {
+			go AppendToOutPutFile("File Length <= 10")
+			return
+		}
+	}
 	base64File := base64.StdEncoding.EncodeToString(fileBytes)
 
 	postBody := fmt.Sprintf(`{"msg":"%s","fileName":"%s","to":["%s"],"base64":"%s"}`, messageToSend,
@@ -168,7 +205,6 @@ func AppendToOutPutFile(text string) {
 
 func FindAndReturnCurrentDir() string {
 	currentDir := ""
-	fmt.Println(len(os.Args), os.Args)
 	if slices.Contains(os.Args, "--dev") {
 		current, err := os.Getwd()
 		check(err)
