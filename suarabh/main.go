@@ -19,7 +19,7 @@ import (
 )
 
 const baseUrl = "http://103.174.103.159:4000/v1"
-const token = "saura1"
+const token = "saura"
 const method = "POST"
 
 var mediaUrl = fmt.Sprintf("%s/send_media", baseUrl)
@@ -196,15 +196,12 @@ func AfterSuccessFullConnection() {
 				return
 			}
 			println("Uploading File")
-			message := ""
-			if !ThisConfig.ReadMessageFromCsv {
-				message = ThisConfig.Message
-			} else if ThisConfig.ReadMessageFromCsv && len(cols) >= 3 && len(cols[2]) > 0 {
+			// if !ThisConfig.ReadMessageFromCsv {
+			message := ThisConfig.Message
+			if ThisConfig.ReadMessageFromCsv && len(cols) >= 3 && len(cols[2]) > 0 {
 				for index, col := range cols {
 					if index > 1 {
-						if len(col) > 0 {
-							message = strings.ReplaceAll(message, fmt.Sprintf("{{var%d}}", index-1), col)
-						}
+						message = strings.ReplaceAll(message, fmt.Sprintf("{{var%d}}", index-1), col)
 					}
 				}
 			}

@@ -200,6 +200,10 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Uploading %#v\n", number, err))
 					continue
 				}
+				jpegThumbnail, err := ImageThumbnail(fileByte)
+				if err != nil {
+					AppendToOutPutFile(fmt.Sprintf("%s,false,Error While Generating Thumbnail %#v\n", number, err))
+				}
 				docProto = &waE2E.Message{
 					ImageMessage: &waE2E.ImageMessage{
 						Caption:  proto.String(msg),
@@ -207,6 +211,7 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 						Mimetype: proto.String(extensionName),
 						// FileName:      &fileName,
 						DirectPath:    &resp.DirectPath,
+						JPEGThumbnail: jpegThumbnail,
 						MediaKey:      resp.MediaKey,
 						FileEncSHA256: resp.FileEncSHA256,
 						FileSHA256:    resp.FileSHA256,
@@ -293,12 +298,12 @@ func (connection *WhatsappConnection) sendMediaFile(to []string, fileByte []byte
 				println("finished uploading")
 				if strings.Contains(extensionName, "pdf") {
 					println("PDF to thumb")
-					// thumb, err := utility.ExtractFirstPage(fileByte)
-					// if err == nil && len(thumb) > 0 {
-					// docProto.DocumentMessage.JPEGThumbnail = thumb
-					// } else {
-					// println(err.Error())
-					// }
+					thumb, err := utility.ExtractFirstPage(fileByte)
+					if err == nil && len(thumb) > 0 {
+						docProto.DocumentMessage.JPEGThumbnail = thumb
+					} else {
+						println(err.Error())
+					}
 				}
 			}
 		}

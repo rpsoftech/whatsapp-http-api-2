@@ -6,10 +6,21 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/prplecake/go-thumbnail"
 )
 
-func generateVideoThumbnail(fileBytes []byte, fileName string) ([]byte, error) {
+var config = thumbnail.Generator{
+	DestinationPath:   "",
+	DestinationPrefix: "thumb_",
+	Scaler:            "CatmullRom",
+}
+var gen *thumbnail.Generator
 
+func init() {
+	gen = thumbnail.NewGenerator(config)
+}
+func generateVideoThumbnail(fileBytes []byte, fileName string) ([]byte, error) {
 	tempDir, err := os.MkdirTemp("", "thumbnail*")
 	if err != nil {
 		return []byte{}, err
@@ -50,4 +61,18 @@ func generateVideoThumbnail(fileBytes []byte, fileName string) ([]byte, error) {
 	bytes, err := os.ReadFile(outputFilePath)
 	os.RemoveAll(tempDir)
 	return bytes, err
+}
+
+func ImageThumbnail(fileBytes []byte) ([]byte, error) {
+	i, err := gen.NewImageFromByteArray(fileBytes)
+	if err != nil {
+		// panic(err)
+		return fileBytes, err
+	}
+	thumbBytes, err := gen.CreateThumbnail(i)
+	if err != nil {
+		return fileBytes, err
+	}
+	return thumbBytes, err
+
 }
