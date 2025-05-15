@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -15,13 +16,13 @@ import (
 )
 
 var SqlContainer *sqlstore.Container
+var ctx = context.Background()
 
 func InitSqlContainer() {
-
 	dbLog := waLog.Stdout("Database", "WARN", true)
 	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
 	var err error
-	SqlContainer, err = sqlstore.New("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", filepath.Join(env.CurrentDirectory, "WhatsappSuperSecrete.db")), dbLog)
+	SqlContainer, err = sqlstore.New(ctx, "sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", filepath.Join(env.CurrentDirectory, "WhatsappSuperSecrete.db")), dbLog)
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +30,7 @@ func InitSqlContainer() {
 
 func ConnectToNumber(jidString string, token string) {
 	// SqlContainer.PutDevice()
-	if deviceStores, _ := SqlContainer.GetAllDevices(); true {
+	if deviceStores, _ := SqlContainer.GetAllDevices(ctx); true {
 		for _, deviceStore := range deviceStores {
 			println(deviceStore.ID.User)
 		}
@@ -41,7 +42,7 @@ func ConnectToNumber(jidString string, token string) {
 	var deviceStore *store.Device
 	if !JID.IsEmpty() {
 		var err error
-		deviceStore, err = SqlContainer.GetDevice(JID)
+		deviceStore, err = SqlContainer.GetDevice(ctx, JID)
 		if err != nil {
 			println(err.Error())
 		}

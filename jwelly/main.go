@@ -138,11 +138,11 @@ func AfterWhatsappConfigFile(data string) {
 	}
 
 	if len(fileBytes) <= 10 {
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 15; i++ {
 			fileBytes, _ = os.ReadFile(filePathToBeSend)
 			if len(fileBytes) <= 10 {
-				go AppendToOutPutFile("Waiting For File")
-				time.Sleep(5 * time.Second)
+				go AppendToOutPutFile("Waiting For File Bytes")
+				time.Sleep(1 * time.Second)
 			} else {
 				break
 			}

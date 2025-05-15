@@ -96,8 +96,8 @@ func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 	case *events.LoggedOut:
 		// Send Status
 		// connection.ConnectionStatus = -1
-		connection.Client.Logout()
-		connection.Client.Store.Delete()
+		connection.Client.Logout(ctx)
+		connection.Client.Store.Delete(ctx)
 		println(connection.Number, " Logged Out")
 		connection.Client.Disconnect()
 		delete(ConnectionMap, connection.Token)
@@ -107,7 +107,7 @@ func (connection *WhatsappConnection) eventHandler(evt interface{}) {
 		go connection.ConnectAndGetQRCode()
 	case *events.Connected:
 		// Send Status
-		connection.Client.Store.Save()
+		connection.Client.Store.Save(ctx)
 		connection.Number = connection.Client.Store.ID.User
 		go func() {
 			env.ServerConfig.Tokens[connection.Token] = connection.Number
